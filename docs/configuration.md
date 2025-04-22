@@ -606,6 +606,14 @@ system. See the corresponding
 
     Defaults to False
 
+#### [`PAPERLESS_SOCIAL_ACCOUNT_CREATE_MISSING_GROUPS=<bool>`](#PAPERLESS_ACCOUNT_SOCIAL_CREATE_MISSING_GROUPS) {#PAPERLESS_ACCOUNT_SOCIAL_CREATE_MISSING_GROUPS}
+
+: Automatically create paperless groups based on the `groups` response from the third party authentication system. Groups will not be automatically deleted if no paperless user is in them anymore.
+
+: In order for this to work, [PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS](#PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS) needs to be enabled.
+
+    Defaults to False
+
 #### [`PAPERLESS_SOCIAL_ACCOUNT_DEFAULT_GROUPS=<comma-separated-list>`](#PAPERLESS_SOCIAL_ACCOUNT_DEFAULT_GROUPS) {#PAPERLESS_SOCIAL_ACCOUNT_DEFAULT_GROUPS}
 
 : A list of group names that users who signup via social accounts will be added to upon signup. Groups listed here must already exist.

@@ -42,9 +42,20 @@ def handle_social_account_updated(sender, request, sociallogin, **kwargs):
         "groups",
         [],
     )  # None if not found
-    if settings.SOCIAL_ACCOUNT_SYNC_GROUPS and social_account_groups is not None:
-        groups = Group.objects.filter(name__in=social_account_groups)
-        logger.debug(
-            f"Syncing groups for user `{sociallogin.user}`: {social_account_groups}",
-        )
-        sociallogin.user.groups.set(groups, clear=True)
+
+    if not settings.SOCIAL_ACCOUNT_SYNC_GROUPS or social_account_groups is None:
+        return
+
+    logger.debug(
+        f"Syncing groups for user `{sociallogin.user}`: {social_account_groups}",
+    )
+
+    if settings.SOCIAL_ACCOUNT_CREATE_MISSING_GROUPS:
+        existing_groups = Group.objects.filter(name__in=social_account_groups)
+        missing_groups = list(filter(lambda sag: not any(sag == g.name for g in existing_groups), social_account_groups))
+        logger.debug(f"Creating missing groups: {missing_groups}")
+        for missing_group in missing_groups:
+            Group(name=missing_group).save()
+
+    groups = Group.objects.filter(name__in=social_account_groups)
+    sociallogin.user.groups.set(groups, clear=True)

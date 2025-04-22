@@ -166,7 +166,7 @@ class TestSyncSocialLoginGroups(TestCase):
     def test_no_groups(self):
         """
         GIVEN:
-            - Enabled group syncing, a user, and a social login with no groups
+            - Enabled group syncing, a user, and a social login with groups
         WHEN:
             - The social login is updated via signal after login
         THEN:
@@ -190,3 +190,41 @@ class TestSyncSocialLoginGroups(TestCase):
             sociallogin=sociallogin,
         )
         self.assertEqual(list(user.groups.all()), [])
+
+    @override_settings(
+        SOCIAL_ACCOUNT_SYNC_GROUPS=True,
+        SOCIAL_ACCOUNT_CREATE_MISSING_GROUPS=True,
+    )
+    def test_create_missing_groups(self):
+        """
+        GIVEN:
+            - Enabled group syncing, a user, and a social login with groups that are not in paperless
+        WHEN:
+            - The social login is updated via signal after login
+        THEN:
+            - The groups are created and the user's groups are updated
+        """
+        group = Group.objects.create(name="group_local")
+        user = User.objects.create_user(username="testuser")
+        user.groups.add(group)
+        user.save()
+        sociallogin = Mock(
+            user=user,
+            account=Mock(
+                extra_data={
+                    "groups": [
+                        "group_local",
+                        "group_social"
+                    ],
+                },
+            ),
+        )
+        handle_social_account_updated(
+            sender=None,
+            request=HttpRequest(),
+            sociallogin=sociallogin,
+        )
+        self.assertEqual(Group.objects.count(), 2)
+        local_group = Group.objects.get(name="group_local")
+        social_group = Group.objects.get(name="group_social")
+        self.assertEqual(list(user.groups.all()), [local_group, social_group])
